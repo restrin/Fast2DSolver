@@ -52,34 +52,9 @@ def supernodalSymbChol(A, superNodalEtree):
         
         Lj = sorted(list(Lj))
 
-#        Lj, first, last = doStuff1(superNode, A, superNodalEtree, rows, cols)
-
-#        rows, cols = doStuff2(rows, cols, first, last, Lj)
         for k in xrange(first, last+1):
             rows[ctr:ctr+last+1-k + len(Lj)] = range(k,last+1) + Lj
             cols[k+1] = ctr + (last-k+1) + len(Lj)
             ctr = ctr + last+1-k+len(Lj)
            
     return rows[:ctr], cols #sp.csc_matrix((np.ones(ctr), rows[:ctr], cols), shape=(A.shape))       
-     
-        
-def doStuff1(superNode, A, superNodalEtree, rows, cols):
-    first = superNode.nodes[0]
-    last = superNode.nodes[-1]
-        
-    Lj = Set(filter(lambda x: x > last, A.indices[A.indptr[first]:A.indptr[last+1]]))
-        
-    for j in superNode.getChildren():
-        c = superNodalEtree.nodes[j].nodes[-1]
-#        Lj = Lj + filter(lambda x: x > i, rows[cols[j]:cols[j+1]])
-        Lj = Lj.union(filter(lambda x: x > last, rows[cols[c]:cols[c+1]]));
- 
-    return sorted(list(Lj)), first, last  
-    
-def doStuff2(rows, cols, first, last, Lj):
-    rowStart = len(rows)
-    for k in range(first, last+1):
-        rows = rows + range(k,last+1) + Lj
-        cols[k+1] = rowStart + (last-k+1) + len(Lj)
-        rowStart = len(rows)
-    return rows, cols
