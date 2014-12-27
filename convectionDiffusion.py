@@ -41,29 +41,34 @@ def ConstructConvectionDiffusionMatrix( D, vx, vy, dt, dx, n, minNodeSize ):
 #            - ((vx[x,y+1]-vx[x,y-1] + vy[x+1,y] - vy[x-1,y])/(2*dx)));
             
         # Diffusion might be wrong
-        if ((i+1)%n != 0 and i < n*n):
+        
+        #c(y+dy)
+        if ((i+1)%n != 0):
             rows[ctr] = i;
             cols[ctr] = i+1;
-            data[ctr] = -dt*(D[x,y]/(dx*dx) - vy[x,y]/(2*dx) - (D[x,y+1]-D[x,y-1])/(4*dx*dx));
+            data[ctr] = -dt*(D[x,y]/(dx*dx) - vy[x,y]/(2*dx) + (D[x,y+1]-D[x,y-1])/(4*dx*dx));
             ctr = ctr+1;
-#            A[i,i+1] = -dt*(D/(dx*dx) - vy[x,y]/(2*dx));
-            rows[ctr] = i+1;
-            cols[ctr] = i;
-            data[ctr] = -dt*(D[x,y]/(dx*dx) + vy[x,y]/(2*dx) + (D[x,y+1]-D[x,y-1])/(4*dx*dx));
+          
+        #c(y-dy)  
+        if (i%n != 0):
+            rows[ctr] = i;
+            cols[ctr] = i-1;
+            data[ctr] = -dt*(D[x,y]/(dx*dx) + vy[x,y]/(2*dx) - (D[x,y+1]-D[x,y-1])/(4*dx*dx));
             ctr = ctr+1;
-#            A[i+1,i] = -dt*(D/(dx*dx) + vy[x,y]/(2*dx));
-            
+      
+        #c(x+dx)  
         if (i < n*n-n):
             rows[ctr] = i;
             cols[ctr] = i+n;
-            data[ctr] = -dt*(D[x,y]/(dx*dx) - vx[x,y]/(2*dx) - (D[x+1,y]-D[x-1,y])/(4*dx*dx));
+            data[ctr] = -dt*(D[x,y]/(dx*dx) - vx[x,y]/(2*dx) + (D[x+1,y]-D[x-1,y])/(4*dx*dx));
+            ctr = ctr+1;            
+        
+        #c(x-dx)
+        if (i >= n):
+            rows[ctr] = i;
+            cols[ctr] = i-n;
+            data[ctr] = -dt*(D[x,y]/(dx*dx) + vx[x,y]/(2*dx) - (D[x+1,y]-D[x-1,y])/(4*dx*dx));
             ctr = ctr+1;
-#            A[i,i+n] = -dt*(D/(dx*dx) - vx[x,y]/(2*dx));
-            rows[ctr] = i+n;
-            cols[ctr] = i;
-            data[ctr] = -dt*(D[x,y]/(dx*dx) + vx[x,y]/(2*dx) + (D[x+1,y]-D[x-1,y])/(4*dx*dx));
-            ctr = ctr+1;
-#            A[i+n,i] = -dt*(D/(dx*dx) + vx[x,y]/(2*dx));
             
     A = sp.coo_matrix((data, (rows, cols)), shape=(n*n,n*n));
     p, levels = nestedDissectionPermutation(n, minNodeSize);
